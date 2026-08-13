@@ -229,6 +229,7 @@
 <script>
 const BUSINESS_PHONE_INTL = "254715617654";
 const BUSINESS_PHONE_LOCAL = "+254715617654";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbxcoKXiD3qmwOJqdxNypBJl60XmhSJamxHWeT3RcfWI9_WNNp3tYQkaf6ZmN6lDOdctpg/exec";
 
 function field(id){ return document.getElementById(id); }
 
@@ -288,9 +289,31 @@ function buildMessage(){
   return msg;
 }
 
+function collectData(){
+  return {
+    name: field("name").value.trim(),
+    phone: field("phone").value.trim(),
+    address: field("address").value.trim(),
+    date: field("date").value,
+    time: field("time").value,
+    load: field("load").value,
+    notes: field("notes").value.trim()
+  };
+}
+
+function logToSheet(data){
+  fetch(SHEET_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(data)
+  }).catch(()=>{});
+}
+
 field("sendWa").addEventListener("click", ()=>{
   if(!validate()) return;
   const msg = buildMessage();
+  logToSheet(collectData());
   const url = "https://wa.me/" + BUSINESS_PHONE_INTL + "?text=" + encodeURIComponent(msg);
   window.open(url, "_blank");
 });
@@ -298,6 +321,7 @@ field("sendWa").addEventListener("click", ()=>{
 field("sendSms").addEventListener("click", ()=>{
   if(!validate()) return;
   const msg = buildMessage();
+  logToSheet(collectData());
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   const sep = isIOS ? "&" : "?";
   const url = "sms:" + BUSINESS_PHONE_LOCAL + sep + "body=" + encodeURIComponent(msg);
